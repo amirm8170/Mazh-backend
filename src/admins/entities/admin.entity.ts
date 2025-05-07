@@ -13,8 +13,8 @@ export class AdminEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ nullable: false  , type:'varchar'})
-  phone: number;
+  @Column({ nullable: false })
+  phone: string;
 
   @Column({ nullable: true })
   name: string;

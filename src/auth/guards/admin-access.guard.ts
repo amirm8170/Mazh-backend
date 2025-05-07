@@ -17,7 +17,10 @@ export class AdminAccessGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const isPublic = this.reflector.get<boolean>('roles', context.getHandler());
+    const isPublic = this.reflector.get<boolean>(
+      'isPublic',
+      context.getHandler(),
+    );
     if (isPublic) return true;
 
     let roles = this.reflector.get<AdminTypeEnum[] | AdminTypeEnum>(
@@ -39,7 +42,7 @@ export class AdminAccessGuard implements CanActivate {
     const user = request['user'];
     if (!user) return false;
 
-    if (!roles.includes(user.roles)) return false;
+    if (!roles.includes(user.type)) return false;
 
     return true;
   }

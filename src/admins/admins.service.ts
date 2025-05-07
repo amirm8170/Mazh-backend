@@ -24,7 +24,7 @@ export class AdminsService {
     return await this.adminRepo.findOneBy({ id, isArchive: false });
   }
 
-  async findByPhone(phone: number): Promise<AdminEntity> {
+  async findByPhone(phone: string): Promise<AdminEntity> {
     return await this.adminRepo.findOneBy({ phone, isArchive: false });
   }
 

@@ -22,8 +22,8 @@ import { AdminTypeEnum } from './enum/admin-type.enum';
 export class AdminsController {
   constructor(private readonly adminsService: AdminsService) {}
 
+  @Roles(AdminTypeEnum.SUPERADMIN)
   @Get()
-  @Roles(AdminTypeEnum.EMPLOYEE)
   create(@Req() request: Request) {
     return request['user'];
   }
