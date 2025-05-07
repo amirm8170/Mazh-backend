@@ -1,5 +1,5 @@
 # Use the latest Node.js image
-FROM node:latest
+FROM node:20-alpine
 
 # Set the working directory in the container
 WORKDIR /app
@@ -15,7 +15,6 @@ COPY . .
 
 # 6. Build the Nest.js app
 RUN npm install @sentry/nestjs --save --legacy-peer-deps
-RUN npm install bcrypt --legacy-peer-deps
 RUN npm install @nestjs/jwt --legacy-peer-deps
 
 # Expose the port the app runs on

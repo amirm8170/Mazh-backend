@@ -22,10 +22,6 @@ export class AdminEntity {
   @Column({ nullable: false, type: 'enum', enum: AdminTypeEnum })
   type: AdminTypeEnum;
 
-  @Column({ nullable: true })
-  @Exclude({ toPlainOnly: true })
-  password: string;
-
   @Column({ nullable: true, name: 'last_name' })
   lastName: string;
 
