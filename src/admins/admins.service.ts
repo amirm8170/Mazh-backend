@@ -1,24 +1,18 @@
-import { Injectable, NotImplementedException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateAdminDto } from './dto/create-admin.dto';
-import { UpdateAdminDto } from './dto/update-admin.dto';
 import { AdminEntity } from './entities/admin.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as path from 'path';
 
 @Injectable()
 export class AdminsService {
+  private fileName = path.basename(__filename);
+
   constructor(
     @InjectRepository(AdminEntity)
     private readonly adminRepo: Repository<AdminEntity>,
   ) {}
-
-  create(createAdminDto: CreateAdminDto) {
-    throw new NotImplementedException();
-  }
-
-  findAll() {
-    return `This action returns all admins`;
-  }
 
   async findOne(id: number): Promise<AdminEntity> {
     return await this.adminRepo.findOneBy({ id, isArchive: false });
@@ -28,11 +22,16 @@ export class AdminsService {
     return await this.adminRepo.findOneBy({ phone, isArchive: false });
   }
 
-  update(id: number, updateAdminDto: UpdateAdminDto) {
-    return `This action updates a #${id} admin`;
-  }
+  async create(admin: CreateAdminDto): Promise<AdminEntity> {
+    try {
+      const bluePrint = this.adminRepo.create(admin);
 
-  remove(id: number) {
-    return `This action removes a #${id} admin`;
+      return await this.adminRepo.save(bluePrint);
+    } catch (err) {
+      console.log(
+        `error happened in ${this.fileName} file in create method, Err: ${err.message} `,
+      );
+      throw new InternalServerErrorException(err.message);
+    }
   }
 }
