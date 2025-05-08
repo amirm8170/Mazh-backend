@@ -44,7 +44,7 @@ export class AuthController {
     const admin = await this.adminService.findByPhone(phoneNumber);
     if (!admin) throw new NotFoundException();
 
-    if (otp !== 12345) throw new NotFoundException();
+    if (otp !== "12345") throw new NotFoundException();
 
     const tokenPayload: TJwtPayload = {
       id: admin.id,
