@@ -32,9 +32,15 @@ export class OTPLogin {
   })
   phoneNumber: string;
 
+  @ApiProperty({
+    description: 'otp ',
+    type: String,
+    example: '56734',
+    required: true,
+  })
   @IsNotEmpty()
-  @IsNumber()
-  otp: number;
+  @IsString()
+  otp: string;
 }
 
 export class UserLoginDto {
