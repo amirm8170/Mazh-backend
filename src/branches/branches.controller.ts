@@ -3,11 +3,11 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   UseGuards,
-  Req,
+  Put,
+  NotFoundException,
 } from '@nestjs/common';
 import { BranchesService } from './branches.service';
 import { CreateBranchDto } from './dto/create-branch.dto';
@@ -16,7 +16,9 @@ import { BranchEntity } from './entities/branch.entity';
 import {
   ApiBearerAuth,
   ApiBody,
+  ApiNotFoundResponse,
   ApiOkResponse,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
@@ -96,18 +98,72 @@ export class BranchesController {
     return this.branchesService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.branchesService.findOne(+id);
+  @Roles(AdminRoleEnum.SUPERADMIN)
+  @ApiParam({ name: 'branchId', type: Number })
+  @ApiNotFoundResponse({
+    example: {
+      message: 'invalid branchId',
+      error: 'Not Found',
+      statusCode: 404,
+    },
+  })
+  @Get(':branchId')
+  async findOne(@Param('branchId') branchId: number): Promise<BranchEntity> {
+    const branch = await this.branchesService.findOne(branchId);
+    if (!branch) throw new NotFoundException('invalid branchId');
+
+    return branch;
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateBranchDto: UpdateBranchDto) {
-    return this.branchesService.update(+id, updateBranchDto);
+  @Roles(AdminRoleEnum.SUPERADMIN)
+  @ApiParam({ name: 'branchId', type: Number })
+  @ApiBody({ type: UpdateBranchDto })
+  @ApiNotFoundResponse({
+    example: {
+      message: 'invalid branchId',
+      error: 'Not Found',
+      statusCode: 404,
+    },
+  })
+  @ApiOkResponse({
+    type: BranchEntity,
+    example: {
+      id: 1,
+      name: 'updated name',
+      address: 'address',
+      phone: '04564564654',
+      description: 'description',
+      isArchive: false,
+      createdAt: '2025-05-09T06:25:40.407Z',
+      updatedAt: '2025-05-09T15:13:28.000Z',
+    },
+  })
+  @Put(':branchId')
+  async update(
+    @Param('branchId') branchId: number,
+    @Body() payload: UpdateBranchDto,
+  ): Promise<BranchEntity> {
+    const branch = await this.branchesService.findOne(branchId);
+
+    if (!branch) throw new NotFoundException('invalid branchId');
+
+    return await this.branchesService.update({
+      branchId,
+      updatedBranch: payload,
+    });
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.branchesService.remove(+id);
+  @Roles(AdminRoleEnum.SUPERADMIN)
+  @ApiParam({ name: 'branchId', type: Number })
+  @ApiNotFoundResponse({ example: [] })
+  @Delete(':branchId')
+  async remove(@Param('branchId') branchId: number): Promise<void> {
+    const branch = await this.branchesService.findOne(branchId);
+
+    if (!branch) throw new NotFoundException('invalid branchId');
+
+    await this.branchesService.archive(branchId);
+
+    return;
   }
 }

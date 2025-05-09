@@ -4,7 +4,7 @@ import { AdminEntity } from './entities/admin.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as path from 'path';
-import { TUpdateAdminDetails } from './types/admin.type';
+import { TUpdateAdminDetails, TUpdateAdminPhone } from './types/admin.type';
 
 @Injectable()
 export class AdminsService {
@@ -49,6 +49,18 @@ export class AdminsService {
     } catch (err) {
       console.log(`error happened in ${this.fileName} Error: ${err.message}`);
       throw new InternalServerErrorException(err.message);
+    }
+  }
+
+  async updateAdminPhoneNumber(
+    payload: TUpdateAdminPhone,
+  ): Promise<AdminEntity> {
+    const { admin, phone } = payload;
+    try {
+      admin.phone = phone;
+      return await this.adminRepo.save(admin);
+    } catch (err) {
+      console.log(`error happened in ${this.fileName} Error: ${err.message}`);
     }
   }
 }

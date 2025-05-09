@@ -13,7 +13,7 @@ export class AdminLoginDto {
   @IsNotEmpty()
   @ApiProperty({
     description: 'enter valid phone number',
-    type: String,
+    type: 'string',
     example: '091243567950',
     required: true,
   })
@@ -26,7 +26,7 @@ export class OTPLogin {
   @IsNotEmpty()
   @ApiProperty({
     description: 'enter valid phone number',
-    type: String,
+    type: 'string',
     example: '091243567950',
     required: true,
   })
@@ -34,7 +34,7 @@ export class OTPLogin {
 
   @ApiProperty({
     description: 'otp ',
-    type: String,
+    type: 'string',
     example: '56734',
     required: true,
   })
