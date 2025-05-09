@@ -9,8 +9,6 @@ import {
   NotFoundException,
   Put,
   Param,
-  ForbiddenException,
-  ParseIntPipe,
 } from '@nestjs/common';
 import { AdminsService } from './admins.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
@@ -26,12 +24,10 @@ import {
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
-  ApiExtraModels,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiParam,
   ApiTags,
-  getSchemaPath,
 } from '@nestjs/swagger';
 import { AdminEntity } from './entities/admin.entity';
 import { BranchesService } from 'src/branches/branches.service';

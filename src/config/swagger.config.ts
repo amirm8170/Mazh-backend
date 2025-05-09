@@ -1,5 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { Request, Response } from 'express';
 
 export function SwaggerInitConfig(app: INestApplication): void {
   const document = new DocumentBuilder()
@@ -17,5 +18,13 @@ export function SwaggerInitConfig(app: INestApplication): void {
     .build();
 
   const documentFactory = SwaggerModule.createDocument(app, document);
-  SwaggerModule.setup('/swagger-backend-api', app, documentFactory);
+  SwaggerModule.setup('/swagger-backend-api', app, documentFactory, {
+    swaggerOptions: {
+      url: '/swagger-backend-api-json',
+    },
+  });
+
+  app.use('/swagger-backend-api-json', (req: Request, res: Response) => {
+    res.json(document);
+  });
 }
