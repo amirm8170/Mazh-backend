@@ -5,14 +5,19 @@ import {
   SetMetadata,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { AdminTypeEnum } from 'src/admins/enum/admin-type.enum';
+import { AdminEntity } from 'src/admins/entities/admin.entity';
+import { AdminRoleEnum } from 'src/admins/enum/admin-type.enum';
 
-export const Roles = (...roles: Array<AdminTypeEnum>) =>
+export const Roles = (...roles: Array<AdminRoleEnum>) =>
   SetMetadata('roles', roles);
+
+export interface CustomRequest extends Request {
+  user?: Partial<AdminEntity>;
+}
 
 @Injectable()
 export class AdminAccessGuard implements CanActivate {
-  private defaultAdmin = AdminTypeEnum.SUPERADMIN;
+  private defaultAdmin = AdminRoleEnum.SUPERADMIN;
 
   constructor(private readonly reflector: Reflector) {}
 
@@ -23,7 +28,7 @@ export class AdminAccessGuard implements CanActivate {
     );
     if (isPublic) return true;
 
-    let roles = this.reflector.get<AdminTypeEnum[] | AdminTypeEnum>(
+    let roles = this.reflector.get<AdminRoleEnum[] | AdminRoleEnum>(
       'roles',
       context.getHandler(),
     );
@@ -32,17 +37,17 @@ export class AdminAccessGuard implements CanActivate {
       roles = this.defaultAdmin;
     }
 
-    if (roles && roles.length && roles.includes(AdminTypeEnum.ALL_ROLES)) {
-      roles = Object.values(AdminTypeEnum).filter(
+    if (roles && roles.length && roles.includes(AdminRoleEnum.ALL_ROLES)) {
+      roles = Object.values(AdminRoleEnum).filter(
         (value) => typeof value === 'string',
-      ) as AdminTypeEnum[];
+      ) as AdminRoleEnum[];
     }
 
     const request = context.switchToHttp().getRequest();
     const user = request['user'];
     if (!user) return false;
 
-    if (!roles.includes(user.type)) return false;
+    if (!roles.includes(user.role)) return false;
 
     return true;
   }

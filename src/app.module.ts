@@ -9,6 +9,7 @@ import { AdminsModule } from './admins/admins.module';
 import { AuthGuard } from './auth/guards/auth.guard';
 import { JwtService } from '@nestjs/jwt';
 import { AdminAccessGuard } from './auth/guards/admin-access.guard';
+import { BranchesModule } from './branches/branches.module';
 
 @Module({
   imports: [
@@ -16,8 +17,9 @@ import { AdminAccessGuard } from './auth/guards/admin-access.guard';
     AuthModule,
     UsersModule,
     AdminsModule,
+    BranchesModule,
   ],
   controllers: [AppController],
-  providers: [AppService, AuthGuard, JwtService, AdminAccessGuard],
+  providers: [AppService, AuthGuard, AdminAccessGuard],
 })
 export class AppModule {}

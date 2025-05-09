@@ -1,5 +1,11 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { AdminTypeEnum } from '../enum/admin-type.enum';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import { AdminRoleEnum } from '../enum/admin-type.enum';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateAdminDto {
@@ -22,6 +28,15 @@ export class CreateAdminDto {
   lastName?: string;
 
   @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({
+    example: 'something about admin',
+    type: String,
+    required: false,
+  })
+  description?: string;
+
+  @IsString()
   @IsNotEmpty()
   @ApiProperty({
     example: '09125476123',
@@ -30,12 +45,20 @@ export class CreateAdminDto {
   })
   phone: string;
 
-  @IsEnum(AdminTypeEnum)
+  @IsNumber()
   @IsNotEmpty()
   @ApiProperty({
-    example: AdminTypeEnum.ADMIN,
+    type: Number,
+    required: true,
+  })
+  branchId: number;
+
+  @IsEnum(AdminRoleEnum)
+  @IsNotEmpty()
+  @ApiProperty({
+    example: AdminRoleEnum.ADMIN,
     type: String,
     required: true,
   })
-  type: AdminTypeEnum;
+  role: AdminRoleEnum;
 }
