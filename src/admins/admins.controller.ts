@@ -128,10 +128,23 @@ export class AdminsController {
     return await this.adminsService.create(payload);
   }
 
-  @ApiExtraModels(CreateAdminDto)
   @ApiParam({ name: 'adminId', type: Number })
   @ApiBody({ type: UpdateAdminDetailsDto })
-  @ApiOkResponse({ type: AdminEntity })
+  @ApiOkResponse({
+    type: AdminEntity,
+    example: {
+      id: 11,
+      phone: '346456575',
+      branchId: 2,
+      name: 'farzin',
+      role: 'admin',
+      lastName: null,
+      isArchive: false,
+      description: 'something about admin',
+      createdAt: '2025-05-09T08:45:10.261Z',
+      updatedAt: '2025-05-09T09:47:26.000Z',
+    },
+  })
   @ApiBadRequestResponse({
     example: [
       {
