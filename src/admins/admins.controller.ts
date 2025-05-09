@@ -31,7 +31,10 @@ import {
 } from '@nestjs/swagger';
 import { AdminEntity } from './entities/admin.entity';
 import { BranchesService } from 'src/branches/branches.service';
-import { UpdateAdminDetailsDto } from './dto/update-admin.dto';
+import {
+  UpdateAdminDetailsDto,
+  UpdateAdminPhoneDto,
+} from './dto/update-admin.dto';
 
 @ApiTags('Admins')
 @ApiBearerAuth()
@@ -207,5 +210,92 @@ export class AdminsController {
       admin,
       updatedAdmin: payload,
     });
+  }
+
+  @ApiParam({ name: 'adminId', type: Number })
+  @Roles(AdminRoleEnum.SUPERADMIN, AdminRoleEnum.ADMIN)
+  @Post('update-admin-phone-otp/:adminId')
+  async updateAdminPhoneOtp(
+    @Req() request: CustomRequest,
+    @Param('adminId') adminId: number,
+  ): Promise<void> {
+    const { role } = request.user;
+
+    const admin = await this.adminsService.findOne(adminId);
+    if (!admin) throw new NotFoundException('invalid adminId');
+
+    if (role === AdminRoleEnum.ADMIN && admin.role !== AdminRoleEnum.EMPLOYEE) {
+      throw new BadRequestException('you can just update employees');
+    }
+
+    //! send otp and confirm the new phone number
+  }
+
+  @ApiOkResponse({
+    type: AdminEntity,
+    example: {
+      id: 3,
+      phone: '235436543643',
+      branchId: null,
+      name: 'amir',
+      role: 'superadmin',
+      lastName: null,
+      isArchive: false,
+      description: null,
+      createdAt: '2025-05-07T16:29:49.000Z',
+      updatedAt: '2025-05-09T14:03:58.000Z',
+    },
+  })
+  @ApiNotFoundResponse({
+    example: [
+      {
+        message: 'invalid adminId',
+        error: 'Not Found',
+        statusCode: 404,
+      },
+    ],
+  })
+  @ApiBadRequestResponse({
+    example: [
+      {
+        message: 'you can just update employees',
+        error: 'Bad Request',
+        statusCode: 400,
+      },
+      {
+        message: 'invalid otp',
+        error: 'Bad Request',
+        statusCode: 400,
+      },
+    ],
+  })
+  @ApiParam({ name: 'adminId', type: Number })
+  @ApiBody({
+    type: UpdateAdminPhoneDto,
+  })
+  @Roles(AdminRoleEnum.ADMIN, AdminRoleEnum.SUPERADMIN)
+  @Put('update-admin-phone/:adminId')
+  async updateAdminPhone(
+    @Req() request: CustomRequest,
+    @Body() payload: UpdateAdminPhoneDto,
+    @Param('adminId') adminId: number,
+  ): Promise<AdminEntity> {
+    const { otp, phone } = payload;
+
+    //!check otp with redis
+    if (otp !== '12345') {
+      throw new BadRequestException('invalid otp');
+    }
+
+    const { role } = request.user;
+
+    const admin = await this.adminsService.findOne(adminId);
+    if (!admin) throw new NotFoundException('invalid adminId');
+
+    if (role === AdminRoleEnum.ADMIN && admin.role !== AdminRoleEnum.EMPLOYEE) {
+      throw new BadRequestException('you can just update employees');
+    }
+
+    return await this.adminsService.updateAdminPhoneNumber({ admin, phone });
   }
 }

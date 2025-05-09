@@ -6,7 +6,7 @@ export class CreateBranchDto {
   @IsNotEmpty()
   @ApiProperty({
     description: 'branch name',
-    type: String,
+    type: 'string',
     example: 'first branch',
     required: true,
   })
@@ -15,7 +15,7 @@ export class CreateBranchDto {
   @IsString()
   @IsOptional()
   @ApiPropertyOptional({
-    type: String,
+    type: 'string',
     required: false,
   })
   address?: string;
@@ -23,7 +23,7 @@ export class CreateBranchDto {
   @IsString()
   @IsOptional()
   @ApiPropertyOptional({
-    type: String,
+    type: 'string',
     required: false,
   })
   phone?: string;
@@ -31,7 +31,7 @@ export class CreateBranchDto {
   @IsString()
   @IsOptional()
   @ApiPropertyOptional({
-    type: String,
+    type: 'string',
     required: false,
   })
   description?: string;

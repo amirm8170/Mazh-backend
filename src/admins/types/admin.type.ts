@@ -5,3 +5,8 @@ export type TUpdateAdminDetails = {
   admin: AdminEntity;
   updatedAdmin: UpdateAdminDetailsDto;
 };
+
+export type TUpdateAdminPhone = {
+  admin: AdminEntity;
+  phone: string;
+};
