@@ -3,51 +3,66 @@ import {
   Get,
   Post,
   Body,
-  Patch,
-  Param,
-  Delete,
   UseGuards,
   Req,
   BadRequestException,
+  NotFoundException,
+  Put,
+  Param,
 } from '@nestjs/common';
 import { AdminsService } from './admins.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
-import { UpdateAdminDto } from './dto/update-admin.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { Request } from 'express';
-import { AdminAccessGuard, Roles } from 'src/auth/guards/admin-access.guard';
-import { AdminTypeEnum } from './enum/admin-type.enum';
+import {
+  AdminAccessGuard,
+  CustomRequest,
+  Roles,
+} from 'src/auth/guards/admin-access.guard';
+import { AdminRoleEnum } from './enum/admin-type.enum';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
-  ApiNotFoundResponse,
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { AdminEntity } from './entities/admin.entity';
+import { BranchesService } from 'src/branches/branches.service';
+import { UpdateAdminDto } from './dto/update-admin.dto';
 
 @ApiTags('Admins')
 @ApiBearerAuth()
 @Controller('admins')
 @UseGuards(AuthGuard, AdminAccessGuard)
 export class AdminsController {
-  constructor(private readonly adminsService: AdminsService) {}
+  constructor(
+    private readonly adminsService: AdminsService,
+    private readonly branchService: BranchesService,
+  ) {}
 
-  @Roles(AdminTypeEnum.SUPERADMIN)
+  @Roles(AdminRoleEnum.SUPERADMIN)
   @Get()
   create(@Req() request: Request) {
     return request['user'];
   }
 
+  /**
+   * Creates admin user (superadmin can create admins/employees, admin can only create employees)
+   * @param request
+   * @param payload
+   * @returns A promise that resolves created used by admin or superadmin
+   */
   @ApiOkResponse({
     type: AdminEntity,
     example: {
       phone: '09124323435',
-      type: 'employee',
+      role: 'employee',
       name: null,
       lastName: null,
       id: 5,
+      branchId: 1,
+      description: 'something about admin',
       isArchive: false,
       createdAt: '2025-05-08T16:21:06.730Z',
       updatedAt: '2025-05-08T16:21:06.730Z',
@@ -66,7 +81,7 @@ export class AdminsController {
         statusCode: 400,
       },
       {
-        message: 'admin type just could be employee or admin',
+        message: 'admin role just could be employee or admin',
         error: 'Bad Request',
         statusCode: 400,
       },
@@ -75,31 +90,47 @@ export class AdminsController {
   @ApiBody({
     type: CreateAdminDto,
   })
-  @Roles(AdminTypeEnum.SUPERADMIN, AdminTypeEnum.ADMIN)
+  @Roles(AdminRoleEnum.SUPERADMIN, AdminRoleEnum.ADMIN)
   @Post('add-admin')
   async createAdmin(
-    @Req() request: Request,
+    @Req() request: CustomRequest,
     @Body() payload: CreateAdminDto,
   ): Promise<AdminEntity> {
-    const { phone, type } = payload;
-    const creatorAdminType = request['user']['type'];
+    const { phone, role, branchId } = payload;
+    const creatorAdminRole = request?.user?.role;
+
     const admin = await this.adminsService.findByPhone(phone);
 
     if (admin)
       throw new BadRequestException(`admin with phone ${phone} already exists`);
-    if (type === AdminTypeEnum.SUPERADMIN || type === AdminTypeEnum.ALL_ROLES) {
+    if (role === AdminRoleEnum.SUPERADMIN || role === AdminRoleEnum.ALL_ROLES) {
       throw new BadRequestException(
-        `admin type just could be ${AdminTypeEnum.EMPLOYEE} or ${AdminTypeEnum.ADMIN}`,
+        `admin type just could be ${AdminRoleEnum.EMPLOYEE} or ${AdminRoleEnum.ADMIN}`,
       );
     }
     if (
-      creatorAdminType !== AdminTypeEnum.SUPERADMIN &&
-      type === AdminTypeEnum.ADMIN
+      creatorAdminRole !== AdminRoleEnum.SUPERADMIN &&
+      role === AdminRoleEnum.ADMIN
     ) {
       throw new BadRequestException(
-        `${creatorAdminType} is not allowed to create ${type}`,
+        `${creatorAdminRole} is not allowed to create ${role}`,
       );
     }
+    const branch = await this.branchService.findOne(branchId);
+    if (!branch) throw new NotFoundException('invalid branchId');
+
     return await this.adminsService.create(payload);
   }
+
+  // @Roles(AdminRoleEnum.SUPERADMIN, AdminRoleEnum.ADMIN)
+  // @Put('update-admin/:adminId')
+  // async updateAdmin(
+  //   @Body() payload: UpdateAdminDto,
+  //   @Param('adminId') adminId: number,
+  // ): Promise<AdminEntity> {
+  //   const admin = await this.adminsService.findOne(adminId);
+  //   if (!admin) throw new NotFoundException('invalid adminId');
+
+
+  // }
 }

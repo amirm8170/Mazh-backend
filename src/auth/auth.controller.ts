@@ -49,7 +49,7 @@ export class AuthController {
     const tokenPayload: TJwtPayload = {
       id: admin.id,
       phone: admin.phone,
-      type: admin.type,
+      role: admin.role,
     };
     const accessToken = this.authService.createAccessToken(tokenPayload);
     const refreshToken = this.authService.createRefreshToken(tokenPayload);
