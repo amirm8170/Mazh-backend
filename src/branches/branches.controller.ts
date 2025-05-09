@@ -13,7 +13,12 @@ import { BranchesService } from './branches.service';
 import { CreateBranchDto } from './dto/create-branch.dto';
 import { UpdateBranchDto } from './dto/update-branch.dto';
 import { BranchEntity } from './entities/branch.entity';
-import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { AdminAccessGuard, Roles } from 'src/auth/guards/admin-access.guard';
 import { AdminRoleEnum } from 'src/admins/enum/admin-type.enum';
@@ -26,6 +31,7 @@ export class BranchesController {
   constructor(private readonly branchesService: BranchesService) {}
 
   @ApiOkResponse({ type: BranchEntity })
+  @ApiBody({ type: CreateBranchDto })
   @Roles(AdminRoleEnum.SUPERADMIN)
   @Post()
   create(@Body() createBranchDto: CreateBranchDto): Promise<BranchEntity> {
