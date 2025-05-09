@@ -298,4 +298,65 @@ export class AdminsController {
 
     return await this.adminsService.updateAdminPhoneNumber({ admin, phone });
   }
+
+  @Get('profile')
+  @Roles(AdminRoleEnum.ALL_ROLES)
+  async getProfile(@Req() request: CustomRequest): Promise<AdminEntity> {
+    const { id } = request.user;
+    const admin = await this.adminsService.findOne(id);
+    if (!admin) throw new NotFoundException('invalid adminId');
+
+    return admin;
+  }
+
+  @ApiBody({
+    type: UpdateAdminDetailsDto,
+  })
+  @ApiOkResponse({ type: AdminEntity })
+  @Put('profile')
+  @Roles(AdminRoleEnum.ALL_ROLES)
+  async updateProfile(
+    @Req() request: CustomRequest,
+    @Body() payload: UpdateAdminDetailsDto,
+  ): Promise<AdminEntity> {
+    const { id } = request.user;
+
+    const admin = await this.adminsService.findOne(id);
+    if (!admin) throw new NotFoundException('invalid adminId');
+
+    payload.role = admin.role;
+    payload.branchId = admin.branchId;
+
+    return this.adminsService.updateAdminDetails({
+      admin,
+      updatedAdmin: payload,
+    });
+  }
+
+  @Roles(AdminRoleEnum.ALL_ROLES)
+  @Post('profile-otp')
+  async profileOtp(@Req() request: CustomRequest): Promise<void> {
+    const { id } = request.user;
+
+    //! send otp and store in redis
+  }
+
+  @Roles(AdminRoleEnum.ALL_ROLES)
+  @Put('profile-change-number')
+  async changeProfileNumber(
+    @Req() request: CustomRequest,
+    @Body() payload: UpdateAdminPhoneDto,
+  ): Promise<AdminEntity> {
+    const { user } = request;
+    const { phone, otp } = payload;
+    const admin = await this.adminsService.findOne(user.id);
+
+    //!check otp from redis
+    if (otp !== '12345') throw new BadRequestException('invalid otp');
+
+    return await this.adminsService.updateAdminPhoneNumber({
+      admin,
+      phone,
+    });
+  }
 }
