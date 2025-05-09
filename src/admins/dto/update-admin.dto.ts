@@ -1,6 +1,12 @@
 import { CreateAdminDto } from './create-admin.dto';
-import { ApiPropertyOptional, PickType } from '@nestjs/swagger';
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional, PickType } from '@nestjs/swagger';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { AdminRoleEnum } from '../enum/admin-type.enum';
 
 export class UpdateAdminDetailsDto {
@@ -8,7 +14,7 @@ export class UpdateAdminDetailsDto {
   @IsOptional()
   @ApiPropertyOptional({
     example: 'admin',
-    type: String,
+    type: 'string',
     required: false,
   })
   name?: string;
@@ -17,7 +23,7 @@ export class UpdateAdminDetailsDto {
   @IsOptional()
   @ApiPropertyOptional({
     example: 'admin',
-    type: String,
+    type: 'string',
     required: false,
   })
   lastName?: string;
@@ -26,7 +32,7 @@ export class UpdateAdminDetailsDto {
   @IsOptional()
   @ApiPropertyOptional({
     example: 'something about admin',
-    type: String,
+    type: 'string',
     required: false,
   })
   description?: string;
@@ -34,7 +40,7 @@ export class UpdateAdminDetailsDto {
   @IsNumber()
   @IsOptional()
   @ApiPropertyOptional({
-    type: Number,
+    type: 'number',
     required: false,
   })
   branchId?: number;
@@ -43,12 +49,26 @@ export class UpdateAdminDetailsDto {
   @IsOptional()
   @ApiPropertyOptional({
     example: AdminRoleEnum.ADMIN,
-    type: String,
+    enum: AdminRoleEnum,
     required: false,
   })
   role?: AdminRoleEnum;
 }
 
-export class UpdateAdminPhoneNumber extends PickType(CreateAdminDto, [
-  'phone',
-] as const) {}
+export class UpdateAdminPhoneDto {
+  @ApiProperty({
+    type: 'string',
+    required: true,
+  })
+  @IsString()
+  @IsNotEmpty()
+  phone: string;
+
+  @ApiProperty({
+    type: 'string',
+    required: true,
+  })
+  @IsString()
+  @IsNotEmpty()
+  otp: string;
+}

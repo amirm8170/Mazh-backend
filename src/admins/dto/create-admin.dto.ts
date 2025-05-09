@@ -13,7 +13,7 @@ export class CreateAdminDto {
   @IsOptional()
   @ApiPropertyOptional({
     example: 'admin',
-    type: String,
+    type: 'string',
     required: false,
   })
   name?: string;
@@ -22,7 +22,7 @@ export class CreateAdminDto {
   @IsOptional()
   @ApiPropertyOptional({
     example: 'admin',
-    type: String,
+    type: 'string',
     required: false,
   })
   lastName?: string;
@@ -31,7 +31,7 @@ export class CreateAdminDto {
   @IsOptional()
   @ApiPropertyOptional({
     example: 'something about admin',
-    type: String,
+    type: 'string',
     required: false,
   })
   description?: string;
@@ -40,7 +40,7 @@ export class CreateAdminDto {
   @IsNotEmpty()
   @ApiProperty({
     example: '09125476123',
-    type: String,
+    type: 'string',
     required: true,
   })
   phone: string;
@@ -48,7 +48,7 @@ export class CreateAdminDto {
   @IsNumber()
   @IsNotEmpty()
   @ApiProperty({
-    type: Number,
+    type: 'number',
     required: true,
   })
   branchId: number;
@@ -57,8 +57,7 @@ export class CreateAdminDto {
   @IsNotEmpty()
   @ApiProperty({
     example: AdminRoleEnum.ADMIN,
-    type: String,
-    required: true,
+    enum: AdminRoleEnum,
   })
   role: AdminRoleEnum;
 }
