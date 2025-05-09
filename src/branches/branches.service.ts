@@ -18,8 +18,12 @@ export class BranchesService {
     return await this.branchRepo.save(branch);
   }
 
-  findAll() {
-    return `This action returns all branches`;
+  async findAll(): Promise<BranchEntity[]> {
+    return await this.branchRepo.find({
+      relations: {
+        admins: true,
+      },
+    });
   }
 
   async findOne(id: number): Promise<BranchEntity> {

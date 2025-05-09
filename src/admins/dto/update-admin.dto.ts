@@ -1,6 +1,9 @@
-import { PartialType } from '@nestjs/mapped-types';
 import { CreateAdminDto } from './create-admin.dto';
+<<<<<<< HEAD
 import { ApiPropertyOptional, OmitType, PickType } from '@nestjs/swagger';
+=======
+import { ApiPropertyOptional, PickType } from '@nestjs/swagger';
+>>>>>>> c94e920 (ADD: swagger json)
 import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 import { AdminRoleEnum } from '../enum/admin-type.enum';
 

@@ -31,8 +31,9 @@ export class BranchesController {
     return this.branchesService.create(createBranchDto);
   }
 
+  @Roles(AdminRoleEnum.SUPERADMIN)
   @Get()
-  findAll() {
+  findAll(): Promise<BranchEntity[]> {
     return this.branchesService.findAll();
   }
 
