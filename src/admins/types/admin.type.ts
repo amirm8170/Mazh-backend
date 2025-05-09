@@ -1,7 +1,7 @@
-import { UpdateAdminDto } from '../dto/update-admin.dto';
+import { UpdateAdminDetailsDto } from '../dto/update-admin.dto';
 import { AdminEntity } from '../entities/admin.entity';
 
-export type TUpdateAdmin = {
+export type TUpdateAdminDetails = {
   admin: AdminEntity;
-  updatedAdmin: UpdateAdminDto;
+  updatedAdmin: UpdateAdminDetailsDto;
 };
