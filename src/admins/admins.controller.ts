@@ -9,6 +9,8 @@ import {
   NotFoundException,
   Put,
   Param,
+  ForbiddenException,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { AdminsService } from './admins.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
@@ -24,12 +26,16 @@ import {
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
+  ApiExtraModels,
+  ApiNotFoundResponse,
   ApiOkResponse,
+  ApiParam,
   ApiTags,
+  getSchemaPath,
 } from '@nestjs/swagger';
 import { AdminEntity } from './entities/admin.entity';
 import { BranchesService } from 'src/branches/branches.service';
-import { UpdateAdminDto } from './dto/update-admin.dto';
+import { UpdateAdminDetailsDto } from './dto/update-admin.dto';
 
 @ApiTags('Admins')
 @ApiBearerAuth()
@@ -122,15 +128,75 @@ export class AdminsController {
     return await this.adminsService.create(payload);
   }
 
-  // @Roles(AdminRoleEnum.SUPERADMIN, AdminRoleEnum.ADMIN)
-  // @Put('update-admin/:adminId')
-  // async updateAdmin(
-  //   @Body() payload: UpdateAdminDto,
-  //   @Param('adminId') adminId: number,
-  // ): Promise<AdminEntity> {
-  //   const admin = await this.adminsService.findOne(adminId);
-  //   if (!admin) throw new NotFoundException('invalid adminId');
+  @ApiExtraModels(CreateAdminDto)
+  @ApiParam({ name: 'adminId', type: Number })
+  @ApiBody({ type: UpdateAdminDetailsDto })
+  @ApiOkResponse({ type: AdminEntity })
+  @ApiBadRequestResponse({
+    example: [
+      {
+        message: 'update superadmin is not possible',
+        error: 'Bad Request',
+        statusCode: 400,
+      },
+      {
+        message: 'you can just update employees',
+        error: 'Bad Request',
+        statusCode: 400,
+      },
+    ],
+  })
+  @ApiNotFoundResponse({
+    example: [
+      {
+        message: 'invalid adminId',
+        error: 'Not Found',
+        statusCode: 404,
+      },
+      {
+        message: 'invalid branch id',
+        error: 'Not Found',
+        statusCode: 404,
+      },
+    ],
+  })
+  @Roles(AdminRoleEnum.SUPERADMIN, AdminRoleEnum.ADMIN)
+  @Put('update-admin-details/:adminId')
+  async updateAdmin(
+    @Req() request: CustomRequest,
+    @Body() payload: UpdateAdminDetailsDto,
+    @Param('adminId') adminId: number,
+  ): Promise<AdminEntity> {
+    const { role } = request.user;
+    const { branchId } = payload;
 
+    const admin = await this.adminsService.findOne(adminId);
+    if (!admin) throw new NotFoundException('invalid adminId');
 
-  // }
+    // prevent to change role by admin
+    if (role === AdminRoleEnum.ADMIN && payload.role) {
+      payload.role = admin.role;
+    }
+
+    if (
+      admin.role === AdminRoleEnum.SUPERADMIN ||
+      payload.role === AdminRoleEnum.SUPERADMIN
+    ) {
+      throw new BadRequestException('update superadmin is not possible');
+    }
+
+    if (role === AdminRoleEnum.ADMIN && admin.role !== AdminRoleEnum.EMPLOYEE) {
+      throw new BadRequestException('you can just update employees');
+    }
+
+    if (branchId) {
+      const branch = await this.branchService.findOne(branchId);
+      if (!branch) throw new NotFoundException('invalid branch id');
+    }
+
+    return await this.adminsService.updateAdminDetails({
+      admin,
+      updatedAdmin: payload,
+    });
+  }
 }
