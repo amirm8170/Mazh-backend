@@ -341,6 +341,8 @@ export class AdminsController {
     //! send otp and store in redis
   }
 
+  @ApiOkResponse({ type: AdminEntity })
+  @ApiBody({ type: UpdateAdminPhoneDto })
   @Roles(AdminRoleEnum.ALL_ROLES)
   @Put('profile-change-number')
   async changeProfileNumber(
