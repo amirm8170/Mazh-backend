@@ -30,7 +30,19 @@ import { AdminRoleEnum } from 'src/admins/enum/admin-type.enum';
 export class BranchesController {
   constructor(private readonly branchesService: BranchesService) {}
 
-  @ApiOkResponse({ type: BranchEntity })
+  @ApiOkResponse({
+    type: BranchEntity,
+    example: {
+      name: 'second branch',
+      address: 'address',
+      phone: '464564353',
+      description: 'description second',
+      id: 2,
+      isArchive: false,
+      createdAt: '2025-05-09T08:56:25.303Z',
+      updatedAt: '2025-05-09T08:56:25.303Z',
+    },
+  })
   @ApiBody({ type: CreateBranchDto })
   @Roles(AdminRoleEnum.SUPERADMIN)
   @Post()
