@@ -44,11 +44,15 @@ export class AdminsService {
   async updateAdminDetails(payload: TUpdateAdminDetails): Promise<AdminEntity> {
     const { admin, updatedAdmin } = payload;
     const { name, lastName, description, branchId, role } = updatedAdmin;
+    let isActive: boolean = false;
 
     try {
+      if (typeof name === 'string' && typeof lastName === 'string') {
+        isActive = true;
+      }
       await this.adminRepo.update(
         { id: admin.id },
-        { name, lastName, description, branchId, role },
+        { name, lastName, description, branchId, role, isActive },
       );
       return await this.findOne(admin.id);
     } catch (err) {
