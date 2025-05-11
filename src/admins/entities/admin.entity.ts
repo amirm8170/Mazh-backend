@@ -1,4 +1,6 @@
 import {
+  BeforeInsert,
+  BeforeUpdate,
   Column,
   CreateDateColumn,
   Entity,
@@ -78,6 +80,14 @@ export class AdminEntity {
   @Column({ nullable: true, type: 'varchar' })
   description: string;
 
+  @ApiProperty({
+    example: false,
+    type: 'boolean',
+    default: false,
+  })
+  @Column({ nullable: true, default: false , name:'is_active' })
+  isActive: boolean;
+
   @ApiProperty({ example: '2025-05-09T08:56:25.303Z' })
   @CreateDateColumn({
     type: 'timestamp',
@@ -94,4 +104,14 @@ export class AdminEntity {
     name: 'updated_at',
   })
   updatedAt: Date;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  checkAdminActive() {
+    if (!this.name || !this.lastName) {
+      this.isActive = false;
+    } else {
+      this.isActive = true;
+    }
+  }
 }
