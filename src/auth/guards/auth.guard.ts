@@ -36,8 +36,8 @@ export class AuthGuard implements CanActivate {
       const payload = await this.jwtService.verifyAsync(token, {
         secret: process.env.JWT_ACCESS_TOKEN_SECRET,
       });
-
-      const admin = await this.adminService.findByPhone(payload.phoneNumber);
+      
+      const admin = await this.adminService.findByPhone(payload.phone);
       if (!admin || admin.isArchive) {
         throw new UnauthorizedException();
       }
