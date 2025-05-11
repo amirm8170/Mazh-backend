@@ -2,9 +2,14 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { AdminEntity } from './entities/admin.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Not, Repository } from 'typeorm';
 import * as path from 'path';
-import { TUpdateAdminDetails, TUpdateAdminPhone } from './types/admin.type';
+import {
+  TGetAllAdminsExceptCaller,
+  TUpdateAdminDetails,
+  TUpdateAdminPhone,
+} from './types/admin.type';
+import { AdminRoleEnum } from './enum/admin-type.enum';
 
 @Injectable()
 export class AdminsService {
@@ -59,6 +64,31 @@ export class AdminsService {
     try {
       admin.phone = phone;
       return await this.adminRepo.save(admin);
+    } catch (err) {
+      console.log(`error happened in ${this.fileName} Error: ${err.message}`);
+    }
+  }
+
+  async getAllAdminsExceptCaller(
+    payload: TGetAllAdminsExceptCaller,
+  ): Promise<AdminEntity[]> {
+    const { role, adminId } = payload;
+
+    try {
+      if (role === AdminRoleEnum.ADMIN) {
+        return await this.adminRepo.find({
+          where: { role: AdminRoleEnum.EMPLOYEE, id: Not(adminId) },
+        });
+      } else if (role === AdminRoleEnum.SUPERADMIN) {
+        return await this.adminRepo.find({
+          where: [
+            { role: AdminRoleEnum.ADMIN, id: Not(adminId) },
+            { role: AdminRoleEnum.EMPLOYEE, id: Not(adminId) },
+          ],
+        });
+      }
+
+      return [];
     } catch (err) {
       console.log(`error happened in ${this.fileName} Error: ${err.message}`);
     }

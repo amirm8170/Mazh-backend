@@ -46,10 +46,44 @@ export class AdminsController {
     private readonly branchService: BranchesService,
   ) {}
 
-  @Roles(AdminRoleEnum.SUPERADMIN)
+  @ApiOkResponse({
+    type: [AdminEntity],
+    example: [
+      {
+        id: 2,
+        phone: '346456575',
+        branchId: 1,
+        name: null,
+        role: 'employee',
+        lastName: null,
+        isArchive: false,
+        description: 'something about admin',
+        createdAt: '2025-05-11T08:08:38.789Z',
+        updatedAt: '2025-05-11T08:08:38.789Z',
+      },
+      {
+        id: 3,
+        phone: '34543534543',
+        branchId: 1,
+        name: null,
+        role: 'admin',
+        lastName: null,
+        isArchive: false,
+        description: 'something about admin',
+        createdAt: '2025-05-11T08:08:46.853Z',
+        updatedAt: '2025-05-11T08:08:46.853Z',
+      },
+    ],
+  })
+  @Roles(AdminRoleEnum.SUPERADMIN, AdminRoleEnum.ADMIN)
   @Get()
-  create(@Req() request: Request) {
-    return request['user'];
+  async create(@Req() request: CustomRequest): Promise<AdminEntity[]> {
+    const { role, id } = request.user;
+
+    return await this.adminsService.getAllAdminsExceptCaller({
+      adminId: id,
+      role,
+    });
   }
 
   /**
