@@ -1,6 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateBranchDto } from './dto/create-branch.dto';
-import { UpdateBranchDto } from './dto/update-branch.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BranchEntity } from './entities/branch.entity';
 import { Repository } from 'typeorm';
@@ -41,6 +40,7 @@ export class BranchesService {
         .createQueryBuilder('branch')
         .leftJoinAndSelect('branch.admins', 'admins')
         .where('admins.id = :adminId', { adminId })
+        .andWhere('branch.isArchive = false')
         .getMany();
     } catch (err) {
       console.log(
