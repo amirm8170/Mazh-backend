@@ -35,6 +35,21 @@ export class BranchesService {
     }));
   }
 
+  async findByAdminId(adminId: number): Promise<BranchEntity[]> {
+    try {
+      return await this.branchRepo
+        .createQueryBuilder('branch')
+        .leftJoinAndSelect('branch.admins', 'admins')
+        .where('admins.id = :adminId', { adminId })
+        .getMany();
+    } catch (err) {
+      console.log(
+        `error happened in ${this.fileName} findById method, Error: ${err.message}`,
+      );
+      throw new InternalServerErrorException(err.message);
+    }
+  }
+
   async findOne(id: number): Promise<BranchEntity> {
     return await this.branchRepo.findOne({ where: { id, isArchive: false } });
   }
