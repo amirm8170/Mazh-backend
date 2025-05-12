@@ -80,11 +80,12 @@ export class AdminsController {
   @Roles(AdminRoleEnum.SUPERADMIN, AdminRoleEnum.ADMIN)
   @Get()
   async create(@Req() request: CustomRequest): Promise<AdminEntity[]> {
-    const { role, id } = request.user;
+    const { role, id, branchId } = request.user;
 
     return await this.adminsService.getAllAdminsExceptCaller({
       adminId: id,
       role,
+      branchId,
     });
   }
 
@@ -140,6 +141,7 @@ export class AdminsController {
   ): Promise<AdminEntity> {
     const { phone, role, branchId } = payload;
     const creatorAdminRole = request?.user?.role;
+    const creatorBranchId = request?.user?.branchId;
 
     const admin = await this.adminsService.findByPhone(phone);
 
@@ -158,8 +160,13 @@ export class AdminsController {
         `${creatorAdminRole} is not allowed to create ${role}`,
       );
     }
-    const branch = await this.branchService.findOne(branchId);
-    if (!branch) throw new NotFoundException('invalid branchId');
+
+    if (creatorAdminRole === AdminRoleEnum.ADMIN) {
+      payload.branchId = creatorBranchId;
+    } else {
+      const branch = await this.branchService.findOne(branchId);
+      if (!branch) throw new NotFoundException('invalid branchId');
+    }
 
     return await this.adminsService.create(payload);
   }
@@ -217,14 +224,23 @@ export class AdminsController {
     @Body() payload: UpdateAdminDetailsDto,
     @Param('adminId') adminId: number,
   ): Promise<AdminEntity> {
-    const { role } = request.user;
-    const { branchId } = payload;
+    const creatorAdminRole = request?.user?.role;
+    const creatorBranchId = request?.user?.branchId;
+    let { branchId } = payload;
+    let admin: AdminEntity;
 
-    const admin = await this.adminsService.findOne(adminId);
+    if (creatorAdminRole === AdminRoleEnum.SUPERADMIN) {
+      admin = await this.adminsService.findOne({ adminId });
+    } else {
+      admin = await this.adminsService.findOne({
+        adminId,
+        branchId: creatorBranchId,
+      });
+    }
     if (!admin) throw new NotFoundException('invalid adminId');
 
     // prevent to change role by admin
-    if (role === AdminRoleEnum.ADMIN && payload.role) {
+    if (creatorAdminRole === AdminRoleEnum.ADMIN && payload.role) {
       payload.role = admin.role;
     }
 
@@ -235,8 +251,15 @@ export class AdminsController {
       throw new BadRequestException('update superadmin is not possible');
     }
 
-    if (role === AdminRoleEnum.ADMIN && admin.role !== AdminRoleEnum.EMPLOYEE) {
+    if (
+      creatorAdminRole === AdminRoleEnum.ADMIN &&
+      admin.role !== AdminRoleEnum.EMPLOYEE
+    ) {
       throw new BadRequestException('you can just update employees');
+    }
+
+    if (creatorAdminRole === AdminRoleEnum.ADMIN) {
+      branchId = creatorBranchId;
     }
 
     if (branchId) {
@@ -257,9 +280,13 @@ export class AdminsController {
     @Req() request: CustomRequest,
     @Param('adminId') adminId: number,
   ): Promise<void> {
-    const { role } = request.user;
-
-    const admin = await this.adminsService.findOne(adminId);
+    const { role, branchId } = request.user;
+    let admin: AdminEntity;
+    if (role === AdminRoleEnum.SUPERADMIN) {
+      admin = await this.adminsService.findOne({ adminId });
+    } else {
+      admin = await this.adminsService.findOne({ adminId, branchId });
+    }
     if (!admin) throw new NotFoundException('invalid adminId');
 
     if (role === AdminRoleEnum.ADMIN && admin.role !== AdminRoleEnum.EMPLOYEE) {
@@ -320,15 +347,19 @@ export class AdminsController {
     @Param('adminId') adminId: number,
   ): Promise<AdminEntity> {
     const { otp, phone } = payload;
+    let admin: AdminEntity;
 
     //!check otp with redis
     if (otp !== '12345') {
       throw new BadRequestException('invalid otp');
     }
 
-    const { role } = request.user;
-
-    const admin = await this.adminsService.findOne(adminId);
+    const { role, branchId } = request.user;
+    if (role === AdminRoleEnum.SUPERADMIN) {
+      admin = await this.adminsService.findOne({ adminId });
+    } else {
+      admin = await this.adminsService.findOne({ adminId, branchId });
+    }
     if (!admin) throw new NotFoundException('invalid adminId');
 
     if (role === AdminRoleEnum.ADMIN && admin.role !== AdminRoleEnum.EMPLOYEE) {
@@ -342,7 +373,7 @@ export class AdminsController {
   @Roles(AdminRoleEnum.ALL_ROLES)
   async getProfile(@Req() request: CustomRequest): Promise<AdminEntity> {
     const { id } = request.user;
-    const admin = await this.adminsService.findOne(id);
+    const admin = await this.adminsService.findOne({ adminId: id });
     if (!admin) throw new NotFoundException('invalid adminId');
 
     return admin;
@@ -360,7 +391,7 @@ export class AdminsController {
   ): Promise<AdminEntity> {
     const { id } = request.user;
 
-    const admin = await this.adminsService.findOne(id);
+    const admin = await this.adminsService.findOne({ adminId: id });
     if (!admin) throw new NotFoundException('invalid adminId');
 
     payload.role = admin.role;
@@ -390,7 +421,7 @@ export class AdminsController {
   ): Promise<AdminEntity> {
     const { user } = request;
     const { phone, otp } = payload;
-    const admin = await this.adminsService.findOne(user.id);
+    const admin = await this.adminsService.findOne({ adminId: user.id });
 
     //!check otp from redis
     if (otp !== '12345') throw new BadRequestException('invalid otp');
@@ -408,9 +439,14 @@ export class AdminsController {
     @Req() request: CustomRequest,
     @Param('adminId') adminId: number,
   ): Promise<AdminEntity> {
-    const { role } = request.user;
+    const { role, branchId } = request.user;
+    let admin: AdminEntity;
 
-    const admin = await this.adminsService.findOne(adminId);
+    if (role === AdminRoleEnum.SUPERADMIN) {
+      admin = await this.adminsService.findOne({ adminId });
+    } else {
+      admin = await this.adminsService.findOne({ adminId, branchId });
+    }
 
     if (!admin) throw new NotFoundException('invalid adminId');
     if (role === AdminRoleEnum.ADMIN && admin.role !== AdminRoleEnum.EMPLOYEE) {
