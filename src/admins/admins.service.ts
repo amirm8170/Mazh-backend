@@ -82,6 +82,7 @@ export class AdminsService {
       if (role === AdminRoleEnum.ADMIN) {
         return await this.adminRepo.find({
           where: { role: AdminRoleEnum.EMPLOYEE, id: Not(adminId) },
+          relations: { branch: true },
         });
       } else if (role === AdminRoleEnum.SUPERADMIN) {
         return await this.adminRepo.find({
@@ -89,6 +90,7 @@ export class AdminsService {
             { role: AdminRoleEnum.ADMIN, id: Not(adminId) },
             { role: AdminRoleEnum.EMPLOYEE, id: Not(adminId) },
           ],
+          relations: { branch: true },
         });
       }
 

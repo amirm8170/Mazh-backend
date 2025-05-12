@@ -8,6 +8,7 @@ import {
   UseGuards,
   Put,
   NotFoundException,
+  Req,
 } from '@nestjs/common';
 import { BranchesService } from './branches.service';
 import { CreateBranchDto } from './dto/create-branch.dto';
@@ -22,7 +23,11 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
-import { AdminAccessGuard, Roles } from 'src/auth/guards/admin-access.guard';
+import {
+  AdminAccessGuard,
+  CustomRequest,
+  Roles,
+} from 'src/auth/guards/admin-access.guard';
 import { AdminRoleEnum } from 'src/admins/enum/admin-type.enum';
 
 @ApiTags('Branches')
@@ -92,10 +97,15 @@ export class BranchesController {
       },
     ],
   })
-  @Roles(AdminRoleEnum.SUPERADMIN)
+  @Roles(AdminRoleEnum.SUPERADMIN, AdminRoleEnum.ADMIN)
   @Get()
-  findAll(): Promise<BranchEntity[]> {
-    return this.branchesService.findAll();
+  async findAll(@Req() request: CustomRequest): Promise<BranchEntity[]> {
+    const { role, id } = request.user;
+    if (role === AdminRoleEnum.SUPERADMIN) {
+      return await this.branchesService.findAll();
+    } else {
+      return await this.branchesService.findByAdminId(id);
+    }
   }
 
   @Roles(AdminRoleEnum.SUPERADMIN)
