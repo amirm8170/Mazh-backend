@@ -9,11 +9,11 @@ import {
   NotFoundException,
   Put,
   Param,
+  Delete,
 } from '@nestjs/common';
 import { AdminsService } from './admins.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
-import { Request } from 'express';
 import {
   AdminAccessGuard,
   CustomRequest,
@@ -57,7 +57,7 @@ export class AdminsController {
         role: 'employee',
         lastName: null,
         isArchive: false,
-        isActive:false,
+        isActive: false,
         description: 'something about admin',
         createdAt: '2025-05-11T08:08:38.789Z',
         updatedAt: '2025-05-11T08:08:38.789Z',
@@ -70,7 +70,7 @@ export class AdminsController {
         role: 'admin',
         lastName: null,
         isArchive: false,
-        isActive:false,
+        isActive: false,
         description: 'something about admin',
         createdAt: '2025-05-11T08:08:46.853Z',
         updatedAt: '2025-05-11T08:08:46.853Z',
@@ -103,7 +103,7 @@ export class AdminsController {
       lastName: null,
       id: 5,
       branchId: 1,
-      isActive:false,
+      isActive: false,
       description: 'something about admin',
       isArchive: false,
       createdAt: '2025-05-08T16:21:06.730Z',
@@ -176,7 +176,7 @@ export class AdminsController {
       role: 'admin',
       lastName: null,
       isArchive: false,
-      isActive:false,
+      isActive: false,
       description: 'something about admin',
       createdAt: '2025-05-09T08:45:10.261Z',
       updatedAt: '2025-05-09T09:47:26.000Z',
@@ -279,7 +279,7 @@ export class AdminsController {
       role: 'superadmin',
       lastName: null,
       isArchive: false,
-      isActive:false,
+      isActive: false,
       description: null,
       createdAt: '2025-05-07T16:29:49.000Z',
       updatedAt: '2025-05-09T14:03:58.000Z',
@@ -399,5 +399,23 @@ export class AdminsController {
       admin,
       phone,
     });
+  }
+
+  @ApiParam({ name: 'adminId', type: Number })
+  @Roles(AdminRoleEnum.SUPERADMIN, AdminRoleEnum.ADMIN)
+  @Delete(':adminId')
+  async deleteAdmin(
+    @Req() request: CustomRequest,
+    @Param('adminId') adminId: number,
+  ): Promise<AdminEntity> {
+    const { role } = request.user;
+
+    const admin = await this.adminsService.findOne(adminId);
+
+    if (!admin) throw new NotFoundException('invalid adminId');
+    if (role === AdminRoleEnum.ADMIN && admin.role !== AdminRoleEnum.EMPLOYEE) {
+      throw new BadRequestException('you can just delete employees');
+    }
+    return await this.adminsService.archiveAdmin(admin);
   }
 }

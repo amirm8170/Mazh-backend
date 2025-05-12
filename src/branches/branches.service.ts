@@ -41,6 +41,7 @@ export class BranchesService {
         .createQueryBuilder('branch')
         .leftJoinAndSelect('branch.admins', 'admins')
         .where('admins.id = :adminId', { adminId })
+        .andWhere('branch.isArchive = false')
         .getMany();
     } catch (err) {
       console.log(

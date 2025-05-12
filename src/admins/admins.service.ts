@@ -81,14 +81,22 @@ export class AdminsService {
     try {
       if (role === AdminRoleEnum.ADMIN) {
         return await this.adminRepo.find({
-          where: { role: AdminRoleEnum.EMPLOYEE, id: Not(adminId) },
+          where: {
+            role: AdminRoleEnum.EMPLOYEE,
+            id: Not(adminId),
+            isArchive: false,
+          },
           relations: { branch: true },
         });
       } else if (role === AdminRoleEnum.SUPERADMIN) {
         return await this.adminRepo.find({
           where: [
-            { role: AdminRoleEnum.ADMIN, id: Not(adminId) },
-            { role: AdminRoleEnum.EMPLOYEE, id: Not(adminId) },
+            { role: AdminRoleEnum.ADMIN, id: Not(adminId), isArchive: false },
+            {
+              role: AdminRoleEnum.EMPLOYEE,
+              id: Not(adminId),
+              isArchive: false,
+            },
           ],
           relations: { branch: true },
         });
@@ -98,5 +106,10 @@ export class AdminsService {
     } catch (err) {
       console.log(`error happened in ${this.fileName} Error: ${err.message}`);
     }
+  }
+
+  async archiveAdmin(admin: AdminEntity): Promise<AdminEntity> {
+    admin.isArchive = true;
+    return await this.adminRepo.save(admin);
   }
 }
