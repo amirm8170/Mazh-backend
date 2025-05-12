@@ -15,4 +15,10 @@ export type TUpdateAdminPhone = {
 export type TGetAllAdminsExceptCaller = {
   adminId: number;
   role: AdminRoleEnum;
+  branchId?:number
+};
+
+export type TGetAdminById = {
+  adminId: number;
+  branchId?: number;
 };

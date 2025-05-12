@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Not, Repository } from 'typeorm';
 import * as path from 'path';
 import {
+  TGetAdminById,
   TGetAllAdminsExceptCaller,
   TUpdateAdminDetails,
   TUpdateAdminPhone,
@@ -20,8 +21,16 @@ export class AdminsService {
     private readonly adminRepo: Repository<AdminEntity>,
   ) {}
 
-  async findOne(id: number): Promise<AdminEntity> {
-    return await this.adminRepo.findOneBy({ id, isArchive: false });
+  async findOne(payload: TGetAdminById): Promise<AdminEntity> {
+    const { adminId, branchId } = payload;
+    if (branchId) {
+      return await this.adminRepo.findOneBy({
+        id: adminId,
+        branchId,
+        isArchive: false,
+      });
+    }
+    return await this.adminRepo.findOneBy({ id: adminId, isArchive: false });
   }
 
   async findByPhone(phone: string): Promise<AdminEntity> {
@@ -54,7 +63,7 @@ export class AdminsService {
         { id: admin.id },
         { name, lastName, description, branchId, role, isActive },
       );
-      return await this.findOne(admin.id);
+      return await this.findOne({ adminId: admin.id });
     } catch (err) {
       console.log(`error happened in ${this.fileName} Error: ${err.message}`);
       throw new InternalServerErrorException(err.message);
@@ -76,19 +85,28 @@ export class AdminsService {
   async getAllAdminsExceptCaller(
     payload: TGetAllAdminsExceptCaller,
   ): Promise<AdminEntity[]> {
-    const { role, adminId } = payload;
+    const { role, adminId, branchId } = payload;
 
     try {
       if (role === AdminRoleEnum.ADMIN) {
         return await this.adminRepo.find({
-          where: { role: AdminRoleEnum.EMPLOYEE, id: Not(adminId) },
+          where: {
+            role: AdminRoleEnum.EMPLOYEE,
+            id: Not(adminId),
+            isArchive: false,
+            branchId,
+          },
           relations: { branch: true },
         });
       } else if (role === AdminRoleEnum.SUPERADMIN) {
         return await this.adminRepo.find({
           where: [
-            { role: AdminRoleEnum.ADMIN, id: Not(adminId) },
-            { role: AdminRoleEnum.EMPLOYEE, id: Not(adminId) },
+            { role: AdminRoleEnum.ADMIN, id: Not(adminId), isArchive: false },
+            {
+              role: AdminRoleEnum.EMPLOYEE,
+              id: Not(adminId),
+              isArchive: false,
+            },
           ],
           relations: { branch: true },
         });
@@ -98,5 +116,10 @@ export class AdminsService {
     } catch (err) {
       console.log(`error happened in ${this.fileName} Error: ${err.message}`);
     }
+  }
+
+  async archiveAdmin(admin: AdminEntity): Promise<AdminEntity> {
+    admin.isArchive = true;
+    return await this.adminRepo.save(admin);
   }
 }
