@@ -10,6 +10,7 @@ import { AuthGuard } from './auth/guards/auth.guard';
 import { JwtService } from '@nestjs/jwt';
 import { AdminAccessGuard } from './auth/guards/admin-access.guard';
 import { BranchesModule } from './branches/branches.module';
+import { MaterialsModule } from './materials/materials.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { BranchesModule } from './branches/branches.module';
     UsersModule,
     AdminsModule,
     BranchesModule,
+    MaterialsModule,
   ],
   controllers: [AppController],
   providers: [AppService, AuthGuard, AdminAccessGuard],
